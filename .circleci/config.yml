@@ -6,8 +6,6 @@ jobs:
 
     working_directory: ~/chainx-common-ci
 
-    environment:
-
     steps:
       - checkout
 
