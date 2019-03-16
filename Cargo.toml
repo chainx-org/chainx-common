@@ -1,6 +1,5 @@
 [workspace]
 members = [
     "ustd",
-    "primitive-types",
     "base58",
 ]
