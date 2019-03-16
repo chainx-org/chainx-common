@@ -91,3 +91,26 @@ pub mod prelude {
     #[cfg(not(feature = "std"))]
     pub use crate::vec;
 }
+
+#[cfg(test)]
+#[cfg(not(feature = "std"))]
+mod tests {
+    use super::prelude::*;
+
+    #[test]
+    fn test_no_std_macro_vec() {
+        let mut vec = Vec::new();
+        vec.push(1);
+        vec.push(2);
+        vec.push(3);
+        assert_eq!(vec![1, 2, 3], vec);
+    }
+
+    #[test]
+    fn test_no_std_macro_format() {
+        assert_eq!(
+            format!("test_macro_format"),
+            String::from("test_macro_format")
+        );
+    }
+}
