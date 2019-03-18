@@ -89,6 +89,14 @@ construct_fixed_hash! {
     /// Fixed-size uninterpreted hash type with 65 bytes (520 bits) size.
     pub struct H520(65);
 }
+construct_fixed_hash! {
+    /// Fixed-size uninterpreted hash type with 128 bytes (1024 bits) size.
+    pub strcut H1024(128);
+}
+construct_fixed_hash! {
+    /// Fixed-size uninterpreted hash type with 256 bytes (2048 bits) size.
+    pub struct H2048(256);
+}
 
 #[cfg(feature = "impl-serde")]
 mod serde {
@@ -108,6 +116,8 @@ mod serde {
 	impl_fixed_hash_serde!(H264, 33);
 	impl_fixed_hash_serde!(H512, 64);
 	impl_fixed_hash_serde!(H520, 65);
+        impl_fixed_hash_serde!(H1024, 128);
+        impl_fixed_hash_serde!(H2048, 256);
 }
 
 #[cfg(feature = "impl-codec")]
@@ -128,6 +138,8 @@ mod codec {
 	impl_fixed_hash_codec!(H264, 33);
 	impl_fixed_hash_codec!(H512, 64);
 	impl_fixed_hash_codec!(H520, 65);
+        impl_fixed_hash_codec!(H1024, 128);
+        impl_fixed_hash_codec!(H2048, 256);
 }
 
 #[cfg(feature = "impl-rlp")]
@@ -148,6 +160,8 @@ mod rlp {
 	impl_fixed_hash_rlp!(H264, 33);
 	impl_fixed_hash_rlp!(H512, 64);
 	impl_fixed_hash_rlp!(H520, 65);
+        impl_fixed_hash_rlp!(H1024, 128);
+        impl_fixed_hash_rlp!(H2048, 256);
 }
 
 impl_fixed_hash_conversions!(H256, H160);
