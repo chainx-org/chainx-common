@@ -12,8 +12,8 @@
 
 /// Error type for conversion.
 pub enum Error {
-	/// Overflow encountered.
-	Overflow,
+    /// Overflow encountered.
+    Overflow,
 }
 
 /// An attempted conversion that consumes `self`, which may or may not be
@@ -45,7 +45,9 @@ pub trait TryFrom<T>: Sized {
 }
 
 // TryFrom implies TryInto
-impl<T, U> TryInto<U> for T where U: TryFrom<T>
+impl<T, U> TryInto<U> for T
+where
+    U: TryFrom<T>,
 {
     type Error = U::Error;
 
@@ -54,11 +56,14 @@ impl<T, U> TryInto<U> for T where U: TryFrom<T>
     }
 }
 
-pub enum Never { }
+pub enum Never {}
 
 // Infallible conversions are semantically equivalent to fallible conversions
 // with an uninhabited error type.
-impl<T, U> TryFrom<U> for T where T: From<U> {
+impl<T, U> TryFrom<U> for T
+where
+    T: From<U>,
+{
     type Error = Never;
 
     fn try_from(value: U) -> Result<Self, Self::Error> {

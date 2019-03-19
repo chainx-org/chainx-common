@@ -26,7 +26,7 @@ macro_rules! impl_uint_codec {
 		}
 
 		impl $crate::codec::Decode for $name {
-			fn decode<I: $crate::codec::Input>(input: &mut I) -> Result<Self, $crate::codec::Error> {
+			fn decode<I: $crate::codec::Input>(input: &mut I) -> Option<Self> {
 				<[u8; $len * 8] as $crate::codec::Decode>::decode(input)
 					.map(|b| $name::from_little_endian(&b))
 			}
@@ -44,7 +44,7 @@ macro_rules! impl_fixed_hash_codec {
 			}
 		}
 		impl $crate::codec::Decode for $name {
-			fn decode<I: $crate::codec::Input>(input: &mut I) -> Result<Self, $crate::codec::Error> {
+			fn decode<I: $crate::codec::Input>(input: &mut I) -> Option<Self> {
 				<[u8; $len] as $crate::codec::Decode>::decode(input).map($name)
 			}
 		}
