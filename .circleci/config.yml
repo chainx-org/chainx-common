@@ -38,6 +38,8 @@ jobs:
             export PATH=~/.cargo/bin:$PATH
             export RUST_BACKTRACE=1
             cargo test --all
+            cd ustd && cargo test --no-default-features && cd ..
+            cd base58 && cargo test --no-default-features && cd ..
 
       - run:
           name: Coverage
