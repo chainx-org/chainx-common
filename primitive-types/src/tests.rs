@@ -1,7 +1,26 @@
+macro_rules! from_low_u64_be {
+    ($hash: ident, $val: expr) => {{
+        use byteorder::ByteOrder;
+        let mut buf = [0x0; 8];
+        byteorder::BigEndian::write_u64(&mut buf, $val);
+        let capped = ustd::cmp::min($hash::len_bytes(), 8);
+        let mut bytes = [0x0; ustd::mem::size_of::<$hash>()];
+        bytes[($hash::len_bytes() - capped)..].copy_from_slice(&buf[..capped]);
+        $hash::from_slice(&bytes)
+    }};
+}
+
 #[cfg(feature = "serde")]
 mod serde_tests {
+    use ustd::fmt;
+
+    use impl_serde::serde;
+
     use crate::*;
-    use serde_json as ser;
+
+    fn ser_from_str_err_is_data<T: serde::de::DeserializeOwned + fmt::Debug>(s: &str) -> bool {
+        serde_json::from_str::<T>(s).unwrap_err().is_data()
+    }
 
     macro_rules! test_serde_uint {
         ($name: ident, $test_name: ident) => {
@@ -23,17 +42,20 @@ mod serde_tests {
                 for (number, expected) in tests {
                     assert_eq!(
                         format!("{:?}", expected),
-                        ser::to_string_pretty(&number).unwrap(),
+                        serde_json::to_string_pretty(&number).unwrap(),
                     );
-                    assert_eq!(number, ser::from_str(&format!("{:?}", expected)).unwrap());
+                    assert_eq!(
+                        number,
+                        serde_json::from_str(&format!("{:?}", expected)).unwrap()
+                    );
                 }
 
                 // Invalid examples
-                assert!(ser::from_str::<$name>(r#""0x""#).unwrap_err().is_data());
-                assert!(ser::from_str::<$name>(r#""0xg""#).unwrap_err().is_data());
-                assert!(ser::from_str::<$name>(r#""""#).unwrap_err().is_data());
-                assert!(ser::from_str::<$name>(r#""0""#).unwrap_err().is_data());
-                assert!(ser::from_str::<$name>(r#""10""#).unwrap_err().is_data());
+                assert!(ser_from_str_err_is_data::<$name>(r#""0x""#));
+                assert!(ser_from_str_err_is_data::<$name>(r#""0xg""#));
+                assert!(ser_from_str_err_is_data::<$name>(r#""""#));
+                assert!(ser_from_str_err_is_data::<$name>(r#""0""#));
+                assert!(ser_from_str_err_is_data::<$name>(r#""10""#));
             }
         };
     }
@@ -46,11 +68,10 @@ mod serde_tests {
     #[test]
     fn test_serde_uint_large_values() {
         assert_eq!(
-            ser::to_string_pretty(&!U256::zero()).unwrap(),
+            serde_json::to_string_pretty(&!U256::zero()).unwrap(),
             r#""0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff""#
         );
-        let ser_from_str = |s: &str| ser::from_str::<U256>(s).unwrap_err().is_data();
-        assert!(ser_from_str(
+        assert!(ser_from_str_err_is_data::<U256>(
             r#""0x1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff""#
         ));
     }
@@ -60,15 +81,18 @@ mod serde_tests {
             #[test]
             fn $test_name() {
                 let tests = vec![
-                    ($name::from_low_u64_be(0), "0"),
-                    ($name::from_low_u64_be(1), "1"),
-                    ($name::from_low_u64_be(2), "2"),
-                    ($name::from_low_u64_be(10), "a"),
-                    ($name::from_low_u64_be(15), "f"),
-                    ($name::from_low_u64_be(16), "10"),
-                    ($name::from_low_u64_be(1_000), "3e8"),
-                    ($name::from_low_u64_be(100_000), "186a0"),
-                    ($name::from_low_u64_be(u64::max_value()), "ffffffffffffffff"),
+                    (from_low_u64_be!($name, 0), "0"),
+                    (from_low_u64_be!($name, 1), "1"),
+                    (from_low_u64_be!($name, 2), "2"),
+                    (from_low_u64_be!($name, 10), "a"),
+                    (from_low_u64_be!($name, 15), "f"),
+                    (from_low_u64_be!($name, 16), "10"),
+                    (from_low_u64_be!($name, 1_000), "3e8"),
+                    (from_low_u64_be!($name, 100_000), "186a0"),
+                    (
+                        from_low_u64_be!($name, u64::max_value()),
+                        "ffffffffffffffff",
+                    ),
                 ];
 
                 let align_0_len = $name::len_bytes() * 2;
@@ -76,19 +100,20 @@ mod serde_tests {
                     let expected = format!("0x{:0>width$}", expected, width = align_0_len);
                     assert_eq!(
                         format!("{:?}", expected),
-                        ser::to_string_pretty(&number).unwrap(),
+                        serde_json::to_string_pretty(&number).unwrap(),
                     );
-                    assert_eq!(number, ser::from_str(&format!("{:?}", expected)).unwrap());
+                    assert_eq!(
+                        number,
+                        serde_json::from_str(&format!("{:?}", expected)).unwrap()
+                    );
                 }
 
                 // Invalid examples
                 let invalid = format!("0x{:0>width$}", "g", width = align_0_len);
-                assert!(ser::from_str::<$name>(&format!("{:?}", invalid))
-                    .unwrap_err()
-                    .is_data());
-                assert!(ser::from_str::<$name>(r#""""#).unwrap_err().is_data());
-                assert!(ser::from_str::<$name>(r#""0""#).unwrap_err().is_data());
-                assert!(ser::from_str::<$name>(r#""10""#).unwrap_err().is_data());
+                assert!(ser_from_str_err_is_data::<$name>(&format!("{:?}", invalid)));
+                assert!(ser_from_str_err_is_data::<$name>(r#""""#));
+                assert!(ser_from_str_err_is_data::<$name>(r#""0""#));
+                assert!(ser_from_str_err_is_data::<$name>(r#""10""#));
             }
         };
     }
@@ -106,7 +131,7 @@ mod serde_tests {
     #[test]
     fn test_serde_hash_large_values() {
         assert_eq!(
-            ser::to_string_pretty(&H2048::from([255u8; 256])).unwrap(),
+            serde_json::to_string_pretty(&H2048::from([255u8; 256])).unwrap(),
             "\"0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
              ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
              ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
@@ -116,7 +141,7 @@ mod serde_tests {
              ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
              ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\"",
         );
-        let ser_from_str = |s: &str| ser::from_str::<H2048>(s).unwrap_err().is_data();
+        let ser_from_str = |s: &str| serde_json::from_str::<H2048>(s).unwrap_err().is_data();
         assert!(ser_from_str(
             "\"0x1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
              ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
@@ -139,6 +164,10 @@ mod codec_tests {
     use super::helper;
     use crate::*;
 
+    fn convert_hex_str_endian(value: &str) -> Vec<u8> {
+        helper::from_hex_str(value).into_iter().rev().collect()
+    }
+
     macro_rules! test_codec_uint {
         ($name: ident, $size: expr, $test_name: ident) => {
             #[test]
@@ -157,7 +186,7 @@ mod codec_tests {
                 let align_0_len = $size * 8 * 2;
                 for (arg0, arg1) in tests {
                     let arg1 = format!("0x{:0>width$}", arg1, width = align_0_len);
-                    let arg1 = helper::convert_hex_str_endian(&arg1);
+                    let arg1 = convert_hex_str_endian(&arg1);
                     assert_eq!(arg0.encode(), arg1);
                     let expected: $name = Decode::decode(&mut arg1.as_slice()).unwrap();
                     assert_eq!(arg0, expected)
@@ -176,15 +205,18 @@ mod codec_tests {
             #[test]
             fn $test_name() {
                 let tests = vec![
-                    ($name::from_low_u64_be(0), "0"),
-                    ($name::from_low_u64_be(1), "1"),
-                    ($name::from_low_u64_be(2), "2"),
-                    ($name::from_low_u64_be(10), "a"),
-                    ($name::from_low_u64_be(15), "f"),
-                    ($name::from_low_u64_be(16), "10"),
-                    ($name::from_low_u64_be(1_000), "3e8"),
-                    ($name::from_low_u64_be(100_000), "186a0"),
-                    ($name::from_low_u64_be(u64::max_value()), "ffffffffffffffff"),
+                    (from_low_u64_be!($name, 0), "0"),
+                    (from_low_u64_be!($name, 1), "1"),
+                    (from_low_u64_be!($name, 2), "2"),
+                    (from_low_u64_be!($name, 10), "a"),
+                    (from_low_u64_be!($name, 15), "f"),
+                    (from_low_u64_be!($name, 16), "10"),
+                    (from_low_u64_be!($name, 1_000), "3e8"),
+                    (from_low_u64_be!($name, 100_000), "186a0"),
+                    (
+                        from_low_u64_be!($name, u64::max_value()),
+                        "ffffffffffffffff",
+                    ),
                 ];
                 let align_0_len = $name::len_bytes() * 2;
                 for (arg0, arg1) in tests {
@@ -451,9 +483,5 @@ mod helper {
         } else {
             format!("0{}", value).from_hex().unwrap()
         }
-    }
-
-    pub fn convert_hex_str_endian(value: &str) -> Vec<u8> {
-        from_hex_str(value).into_iter().rev().collect()
     }
 }
