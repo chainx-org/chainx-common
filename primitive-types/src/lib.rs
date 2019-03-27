@@ -146,21 +146,21 @@ mod codec_impl {
     impl_fixed_hash_codec!(H128, 16);
     impl_fixed_hash_codec!(H160, 20);
     impl_fixed_hash_codec!(H256, 32);
-    impl_fixed_hash_codec_ext!(H264, 33);
+    impl_fixed_hash_codec_ext!(H264);
     impl_fixed_hash_codec!(H512, 64);
-    impl_fixed_hash_codec_ext!(H520, 65);
-    impl_fixed_hash_codec_ext!(H1024, 128);
-    impl_fixed_hash_codec_ext!(H2048, 256);
+    impl_fixed_hash_codec_ext!(H520);
+    impl_fixed_hash_codec!(H1024, 128);
+    impl_fixed_hash_codec_ext!(H2048);
 }
 
 #[cfg(feature = "rlp")]
 mod rlp_impl {
     use super::*;
 
-    impl_uint_rlp!(U64, 8);
-    impl_uint_rlp!(U128, 16);
-    impl_uint_rlp!(U256, 32);
-    impl_uint_rlp!(U512, 64);
+    impl_uint_rlp!(U64, 1);
+    impl_uint_rlp!(U128, 2);
+    impl_uint_rlp!(U256, 4);
+    impl_uint_rlp!(U512, 8);
 
     impl_fixed_hash_rlp!(H32, 4);
     impl_fixed_hash_rlp!(H48, 6);

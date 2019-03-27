@@ -10,7 +10,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use ustd::vec::Vec;
+pub use ustd::{prelude::*, mem, slice};
 
 #[doc(hidden)]
 pub use parity_codec as codec;
@@ -53,25 +53,41 @@ macro_rules! impl_fixed_hash_codec {
     };
 }
 
+/// Add Parity Codec serialization extension
+/// Copy from https://github.com/paritytech/parity-codec/blob/parity-codec-v3.2/src/codec.rs
 #[macro_export]
 macro_rules! impl_fixed_hash_codec_ext {
-    ($name: ident, $len: expr) => {
-        impl $crate::codec::Encode for $name {
-            fn using_encoded<R, F: FnOnce(&[u8]) -> R>(&self, f: F) -> R {
-                self.0.using_encoded(f)
-            }
-        }
-        impl $crate::codec::Decode for $name {
-            fn decode<I: $crate::codec::Input>(input: &mut I) -> Option<Self> {
-                if let Some(data) = <$crate::Vec<u8> as $crate::codec::Decode>::decode(input) {
-                    assert_eq!(data.len(), $len);
-                    let mut tmp = [0u8; $len];
-                    &tmp[..].copy_from_slice(&data);
-                    Some($name(tmp))
-                } else {
-                    None
-                }
-            }
-        }
-    };
+	( $( $t:ty ),* ) => { $(
+		impl $crate::codec::Encode for $t {
+			fn using_encoded<R, F: FnOnce(&[u8]) -> R>(&self, f: F) -> R {
+					let size = $crate::mem::size_of::<$t>();
+					let value_slice = unsafe {
+						let ptr = self as *const _ as *const u8;
+						if size != 0 {
+							$crate::slice::from_raw_parts(ptr, size)
+						} else {
+							&[]
+						}
+					};
+					f(value_slice)
+			}
+		}
+
+		impl $crate::codec::Decode for $t {
+			fn decode<I: $crate::codec::Input>(input: &mut I) -> Option<Self> {
+				let size = $crate::mem::size_of::<$t>();
+				assert!(size > 0, "EndianSensitive can never be implemented for a zero-sized type.");
+				let mut val: $t = unsafe { $crate::mem::zeroed() };
+
+				unsafe {
+					let raw: &mut [u8] = $crate::slice::from_raw_parts_mut(
+						&mut val as *mut $t as *mut u8,
+						size
+					);
+					if input.read(raw) != size { return None }
+				}
+				Some(val)
+			}
+		}
+	)* }
 }
