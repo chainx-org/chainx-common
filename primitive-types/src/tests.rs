@@ -130,16 +130,16 @@ mod serde_tests {
 
 #[cfg(feature = "codec")]
 mod codec_tests {
-//
-//    use impl_codec::codec;
-//
-//    #[test]
-//    fn test_codec_uint() {
-//
-//    }
-//
-//    #[test]
-//    fn test_codec_hash() {}
+    //
+    //    use impl_codec::codec;
+    //
+    //    #[test]
+    //    fn test_codec_uint() {
+    //
+    //    }
+    //
+    //    #[test]
+    //    fn test_codec_hash() {}
 }
 
 #[cfg(feature = "rlp")]
