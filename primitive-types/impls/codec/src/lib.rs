@@ -10,7 +10,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use ustd::{prelude::*, mem, slice};
+pub use ustd::{mem, prelude::*, slice};
 
 #[doc(hidden)]
 pub use parity_codec as codec;
