@@ -1,26 +1,34 @@
 [package]
 name = "primitive-types"
 version = "0.2.2"
-authors = ["Parity Technologies <admin@parity.io>"]
+authors = ["Parity Technologies <admin@parity.io> and koushiro <koushiro.cqx@gmail.com>"]
 license = "Apache-2.0/MIT"
 homepage = "https://github.com/paritytech/parity-common"
 description = "Primitive types shared by Ethereum and Substrate"
 edition = "2018"
 
 [dependencies]
-fixed-hash = { version = "0.3", default-features = false }
-uint = { version = "0.6", default-features = false }
+ustd = { path = "../ustd", default-features = false }
 impl-serde = { path = "impls/serde", default-features = false, optional = true }
 impl-codec = { path = "impls/codec", default-features = false, optional = true }
 impl-rlp = { path = "impls/rlp", default-features = false, optional = true }
+uint = { version = "0.6", default-features = false }
+fixed-hash = { version = "0.3", default-features = false }
+
+[dev-dependencies]
+rustc-hex = { version = "2.0", default-features = false }
+serde_json = { version = "1.0", default-features = false }
 
 [features]
 default = ["std"]
-std = ["uint/std", "fixed-hash/std", "impl-codec/std"]
-#heapsize = ["uint/heapsize", "fixed-hash/heapsize"]
-#byteorder = ["fixed-hash/byteorder"]
-#libc = ["fixed-hash/libc"]
-#rustc-hex = ["fixed-hash/rustc-hex"]
+std = [
+    "ustd/std",
+    "uint/std",
+    "fixed-hash/std",
+    "impl-serde",
+    "impl-codec/std",
+    "impl-rlp/std",
+]
 serde = ["std", "impl-serde"]
 codec = ["impl-codec"]
-rlp = ["std", "impl-rlp"]
+rlp = ["impl-rlp"]

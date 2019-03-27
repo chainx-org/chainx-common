@@ -43,9 +43,17 @@ cfg_if! {
         pub use core::cmp;
         pub use core::convert;
         pub use core::default;
+        pub use core::f32;
+        pub use core::f64;
         pub use core::fmt as core_fmt;
         pub use core::hash;
         pub use core::intrinsics;
+        pub use core::i8;
+        pub use core::i16;
+        pub use core::i32;
+        pub use core::i64;
+        pub use core::i128;
+        pub use core::isize;
         pub use core::iter;
         pub use core::marker;
         pub use core::mem;
@@ -54,9 +62,15 @@ cfg_if! {
         pub use core::option;
         pub use core::prelude::v1 as core_prelude;
         pub use core::ptr;
+        pub use core::result;
         pub use core::slice;
         pub use core::str;
-        pub use core::result;
+        pub use core::u8;
+        pub use core::u16;
+        pub use core::u32;
+        pub use core::u64;
+        pub use core::u128;
+        pub use core::usize;
     } else {
         pub use std::*;
     }

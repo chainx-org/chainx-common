@@ -9,10 +9,10 @@
 //! Serde serialization support for uint and fixed hash.
 
 #[doc(hidden)]
-pub extern crate serde;
+pub use serde;
 
 #[doc(hidden)]
-pub extern crate rustc_hex;
+pub use rustc_hex;
 
 #[doc(hidden)]
 pub mod serialize;

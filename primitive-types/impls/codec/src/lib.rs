@@ -10,8 +10,10 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+pub use ustd::vec::Vec;
+
 #[doc(hidden)]
-pub extern crate parity_codec as codec;
+pub use parity_codec as codec;
 
 /// Add Parity Codec serialization support to an integer created by `construct_uint!`.
 #[macro_export]
@@ -46,6 +48,29 @@ macro_rules! impl_fixed_hash_codec {
         impl $crate::codec::Decode for $name {
             fn decode<I: $crate::codec::Input>(input: &mut I) -> Option<Self> {
                 <[u8; $len] as $crate::codec::Decode>::decode(input).map($name)
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! impl_fixed_hash_codec_ext {
+    ($name: ident, $len: expr) => {
+        impl $crate::codec::Encode for $name {
+            fn using_encoded<R, F: FnOnce(&[u8]) -> R>(&self, f: F) -> R {
+                self.0.using_encoded(f)
+            }
+        }
+        impl $crate::codec::Decode for $name {
+            fn decode<I: $crate::codec::Input>(input: &mut I) -> Option<Self> {
+                if let Some(data) = <$crate::Vec<u8> as $crate::codec::Decode>::decode(input) {
+                    assert_eq!(data.len(), $len);
+                    let mut tmp = [0u8; $len];
+                    &tmp[..].copy_from_slice(&data);
+                    Some($name(tmp))
+                } else {
+                    None
+                }
             }
         }
     };

@@ -8,11 +8,13 @@
 
 //! RLP serialization support for uint and fixed hash.
 
-#[doc(hidden)]
-pub extern crate rlp;
+#![cfg_attr(not(feature = "std"), no_std)]
 
 #[doc(hidden)]
-pub extern crate core as core_;
+pub use rlp;
+
+#[doc(hidden)]
+pub use core as core_;
 
 /// Add RLP serialization support to an integer created by `construct_uint!`.
 #[macro_export]

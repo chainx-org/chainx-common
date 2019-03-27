@@ -13,26 +13,37 @@
 //! rlp encoding.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-
-mod error;
-
-pub use self::error::{Error, Never, TryFrom, TryInto};
+#![allow(
+    clippy::assign_op_pattern,
+    clippy::ptr_offset_with_cast,
+    clippy::suspicious_op_assign_impl,
+    clippy::suspicious_arithmetic_impl,
+    clippy::transmute_ptr_to_ptr
+)]
 
 #[macro_use]
 extern crate uint;
-
 #[macro_use]
 extern crate fixed_hash;
 
-#[cfg(feature = "impl-serde")]
+#[cfg(feature = "serde")]
 use impl_serde::{impl_fixed_hash_serde, impl_uint_serde};
 
-#[cfg(feature = "impl-codec")]
-use impl_codec::{impl_fixed_hash_codec, impl_uint_codec};
+#[cfg(feature = "codec")]
+use impl_codec::{impl_fixed_hash_codec, impl_fixed_hash_codec_ext, impl_uint_codec};
 
-#[cfg(feature = "impl-rlp")]
+#[cfg(feature = "rlp")]
 use impl_rlp::{impl_fixed_hash_rlp, impl_uint_rlp};
 
+mod error;
+#[cfg(test)]
+mod tests;
+
+pub use self::error::{Error, Never, TryFrom, TryInto};
+
+// ================================================================================================
+// Unsigned Integer -- U64, U128, U256, U512.
+// ================================================================================================
 construct_uint! {
     /// 64-bit unsigned integer.
     pub struct U64(1);
@@ -50,6 +61,9 @@ construct_uint! {
     pub struct U512(8);
 }
 
+// ================================================================================================
+// Fixed Hash -- H32, H48, H64, H128, H160, H256, H264, H512, H520, H1024, H2048.
+// ================================================================================================
 construct_fixed_hash! {
     /// Fixed-size uninterpreted hash type with 4 bytes (32 bits) size.
     pub struct H32(4);
@@ -95,8 +109,8 @@ construct_fixed_hash! {
     pub struct H2048(256);
 }
 
-#[cfg(feature = "impl-serde")]
-mod serde {
+#[cfg(feature = "serde")]
+mod serde_impl {
     use super::*;
 
     impl_uint_serde!(U64, 1);
@@ -117,8 +131,8 @@ mod serde {
     impl_fixed_hash_serde!(H2048, 256);
 }
 
-#[cfg(feature = "impl-codec")]
-mod codec {
+#[cfg(feature = "codec")]
+mod codec_impl {
     use super::*;
 
     impl_uint_codec!(U64, 1);
@@ -132,21 +146,21 @@ mod codec {
     impl_fixed_hash_codec!(H128, 16);
     impl_fixed_hash_codec!(H160, 20);
     impl_fixed_hash_codec!(H256, 32);
-    //	impl_fixed_hash_codec!(H264, 33);
+    impl_fixed_hash_codec_ext!(H264, 33);
     impl_fixed_hash_codec!(H512, 64);
-    //	impl_fixed_hash_codec!(H520, 65);
-    //	impl_fixed_hash_codec!(H1024, 128);
-    //	impl_fixed_hash_codec!(H2048, 256);
+    impl_fixed_hash_codec_ext!(H520, 65);
+    impl_fixed_hash_codec_ext!(H1024, 128);
+    impl_fixed_hash_codec_ext!(H2048, 256);
 }
 
-#[cfg(feature = "impl-rlp")]
-mod rlp {
+#[cfg(feature = "rlp")]
+mod rlp_impl {
     use super::*;
 
-    impl_uint_rlp!(U64, 1);
-    impl_uint_rlp!(U128, 2);
-    impl_uint_rlp!(U256, 4);
-    impl_uint_rlp!(U512, 8);
+    impl_uint_rlp!(U64, 8);
+    impl_uint_rlp!(U128, 16);
+    impl_uint_rlp!(U256, 32);
+    impl_uint_rlp!(U512, 64);
 
     impl_fixed_hash_rlp!(H32, 4);
     impl_fixed_hash_rlp!(H48, 6);

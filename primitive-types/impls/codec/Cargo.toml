@@ -1,15 +1,19 @@
 [package]
 name = "impl-codec"
 version = "0.2.0"
-authors = ["Parity Technologies <admin@parity.io>"]
+authors = ["Parity Technologies <admin@parity.io> and koushiro <koushiro.cqx@gmail.com>"]
 license = "Apache-2.0/MIT"
 homepage = "https://github.com/paritytech/parity-common"
 description = "Parity Codec serialization support for uint and fixed hash."
 edition = "2018"
 
 [dependencies]
+ustd = { path = "../../../ustd", default-features = false }
 parity-codec = { version = "3.2", default-features = false }
 
 [features]
 default = ["std"]
-std = ["parity-codec/std"]
+std = [
+    "ustd/std",
+    "parity-codec/std",
+]
