@@ -7,4 +7,5 @@ members = [
     "primitive-types/impls/serde",
     "primitive-types/impls/codec",
     "primitive-types/impls/rlp",
+    "ethereum-types",
 ]

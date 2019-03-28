@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: ubuntu:16.04
+      - image: ubuntu:18.04
 
     working_directory: ~/chainx-common-ci
 
@@ -41,6 +41,8 @@ jobs:
             cd base58 && cargo test &&  cargo test --no-default-features && cd ..
             cd rlp && cargo test && cargo test --no-default-features && cd ..
             cd primitive-types && cargo test --features 'serde,codec,rlp' && cargo test --no-default-features --features 'codec,rlp' && cd ..
+            cd ethereum-types && cargo test --features 'serde,codec,rlp' && cargo test --no-default-features --features 'codec,rlp' && cd ..
+
 
       - run:
           name: Coverage

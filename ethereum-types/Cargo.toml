@@ -1,0 +1,33 @@
+[package]
+name = "ethereum-types"
+version = "0.5.0"
+authors = ["Parity Technologies <admin@parity.io> and koushiro <koushiro.cqx@gmail.com>"]
+license = "MIT"
+homepage = "https://github.com/paritytech/parity-common"
+description = "Ethereum types"
+edition = "2018"
+
+[dependencies]
+ustd = { path = "../ustd", default-features = false }
+primitive-types = { path = "../primitive-types", default-features = false }
+impl-serde = { path = "../primitive-types/impls/serde", default-features = false, optional = true }
+impl-codec = { path = "../primitive-types/impls/codec", default-features = false, optional = true }
+impl-rlp = { path = "../primitive-types/impls/rlp", default-features = false, optional = true }
+fixed-hash = { version = "0.3", default-features = false }
+tiny-keccak = "1.4" # support `no_std`
+crunchy = { version = "0.2.1", default-features = false, features = ["limit_256"] }
+
+[dev-dependencies]
+rustc-hex = { version = "2.0", default-features = false }
+rand = { version = "0.4" }
+
+[features]
+default = ["std"]
+std = [
+    "ustd/std",
+    "fixed-hash/std",
+    "primitive-types/std",
+]
+serde = ["std", "impl-serde", "primitive-types/serde"]
+codec = ["impl-codec", "primitive-types/codec"]
+rlp = ["impl-rlp", "primitive-types/rlp"]
