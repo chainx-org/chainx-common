@@ -30,16 +30,17 @@ jobs:
           command: |
             export PATH=~/.cargo/bin:$PATH
             rustup component add clippy
-            cargo clippy -- -Dwarnings
+            cargo clippy --all
 
       - run:
           name: Test
           command: |
             export PATH=~/.cargo/bin:$PATH
             export RUST_BACKTRACE=1
-            cargo test --all
-            cd ustd && cargo test --no-default-features && cd ..
-            cd base58 && cargo test --no-default-features && cd ..
+            cd ustd && cargo test && cargo test --no-default-features && cd ..
+            cd base58 && cargo test &&  cargo test --no-default-features && cd ..
+            cd rlp && cargo test && cargo test --no-default-features && cd ..
+            cd primitive-types && cargo test --features 'serde,codec,rlp' && cargo test --no-default-features --features 'codec,rlp' && cd ..
 
       - run:
           name: Coverage
