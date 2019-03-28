@@ -73,21 +73,21 @@ macro_rules! impl_fixed_hash_codec_ext {
             }
         }
 
-    impl $crate::codec::Decode for $t {
-        fn decode<I: $crate::codec::Input>(input: &mut I) -> Option<Self> {
-            let size = $crate::mem::size_of::<$t>();
-            assert!(size > 0, "EndianSensitive can never be implemented for a zero-sized type.");
-            let mut val: $t = unsafe { $crate::mem::zeroed() };
+        impl $crate::codec::Decode for $t {
+            fn decode<I: $crate::codec::Input>(input: &mut I) -> Option<Self> {
+                let size = $crate::mem::size_of::<$t>();
+                assert!(size > 0, "EndianSensitive can never be implemented for a zero-sized type.");
+                let mut val: $t = unsafe { $crate::mem::zeroed() };
 
-            unsafe {
-                let raw: &mut [u8] = $crate::slice::from_raw_parts_mut(
-                    &mut val as *mut $t as *mut u8,
-                    size
-                );
-                if input.read(raw) != size { return None }
+                unsafe {
+                    let raw: &mut [u8] = $crate::slice::from_raw_parts_mut(
+                        &mut val as *mut $t as *mut u8,
+                        size
+                    );
+                    if input.read(raw) != size { return None }
+                }
+                Some(val)
             }
-            Some(val)
         }
-    }
     )* }
 }
