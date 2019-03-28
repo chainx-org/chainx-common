@@ -26,9 +26,6 @@ std = [
     "ustd/std",
     "uint/std",
     "fixed-hash/std",
-    "impl-serde",
-    "impl-codec/std",
-    "impl-rlp/std",
 ]
 serde = ["std", "impl-serde"]
 codec = ["impl-codec"]
