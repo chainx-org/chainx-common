@@ -9,4 +9,4 @@ edition = "2018"
 
 [dependencies]
 serde = "1.0"
-rustc-hex = "2"
+rustc-hex = "2.0"
