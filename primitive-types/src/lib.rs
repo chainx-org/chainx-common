@@ -6,10 +6,9 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-//! Primitive types shared by Substrate and Parity Ethereum.
-//!
-//! Those are uint types `U128`, `U256` and `U512`, and fixed hash types `H160`,
-//! `H256` and `H512`, with optional serde serialization, parity-codec and
+//! Those are uint types `U64`, `U128`, `U256` and `U512`, and fixed hash types
+//! `H32`, `H48`, `H64`, `H128`, `H160`, `H256`, `H264`, `H512`, `H520`, `H1024`, `H2048`.
+//! All uint and fixed hash types, with optional serde serialization, parity-codec and
 //! rlp encoding.
 
 #![cfg_attr(not(feature = "std"), no_std)]
