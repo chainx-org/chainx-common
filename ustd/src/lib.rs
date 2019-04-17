@@ -21,7 +21,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(not(feature = "std"), feature(core_intrinsics))]
-#![cfg_attr(not(feature = "std"), feature(alloc))]
+#![cfg_attr(not(feature = "std"), feature(alloc_prelude))]
 
 use cfg_if::cfg_if;
 
@@ -32,7 +32,7 @@ cfg_if! {
         pub use alloc::boxed;
         pub use alloc::collections;
         pub use alloc::fmt as alloc_fmt;
-        pub use alloc::prelude as alloc_prelude;
+        pub use alloc::prelude::v1 as alloc_prelude;
         pub use alloc::rc;
         pub use alloc::string;
         pub use alloc::vec;

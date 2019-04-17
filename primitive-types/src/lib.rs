@@ -25,20 +25,30 @@ extern crate uint;
 #[macro_use]
 extern crate fixed_hash;
 
+use ustd::convert::TryFrom;
+
+#[cfg(feature = "serde")]
+pub use impl_serde::serde;
 #[cfg(feature = "serde")]
 use impl_serde::{impl_fixed_hash_serde, impl_uint_serde};
 
 #[cfg(feature = "codec")]
+pub use impl_codec::codec;
+#[cfg(feature = "codec")]
 use impl_codec::{impl_fixed_hash_codec, impl_fixed_hash_codec_ext, impl_uint_codec};
 
 #[cfg(feature = "rlp")]
+pub use impl_rlp::rlp;
+#[cfg(feature = "rlp")]
 use impl_rlp::{impl_fixed_hash_rlp, impl_uint_rlp};
 
-mod error;
-#[cfg(test)]
 mod tests;
 
-pub use self::error::{Error, Never, TryFrom, TryInto};
+/// Error type for conversion.
+pub enum Error {
+    /// Overflow encountered.
+    Overflow,
+}
 
 // ================================================================================================
 // Unsigned Integer -- U64, U128, U256, U512.

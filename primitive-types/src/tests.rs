@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 #[cfg(any(feature = "serde", feature = "codec"))]
 macro_rules! from_low_u64_be {
     ($hash: ident, $val: expr) => {{
