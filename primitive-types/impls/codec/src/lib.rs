@@ -53,8 +53,7 @@ macro_rules! impl_fixed_hash_codec {
     };
 }
 
-/// Add Parity Codec serialization extension
-/// Copy from https://github.com/paritytech/parity-codec/blob/parity-codec-v3.2/src/codec.rs
+/// Add Parity Codec serialization extension for some array types.
 #[macro_export]
 macro_rules! impl_fixed_hash_codec_ext {
     ( $( $t:ty ),* ) => { $(
