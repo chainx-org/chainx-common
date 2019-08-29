@@ -13,21 +13,23 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y cmake binutils-dev libiberty-dev libelf-dev libdw-dev
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --no-modify-path --default-toolchain none -y;
-            source $HOME/.cargo/env
           no_output_timeout: 1800s
       - run:
           name: Format
           command: |
+          export PATH=~/.cargo/bin:$PATH
             rustup component add rustfmt
             cargo fmt -- --check
       - run:
           name: Clippy
           command: |
+            export PATH=~/.cargo/bin:$PATH
             rustup component add clippy
             cargo clippy --all
       - run:
           name: Test
           command: |
+            export PATH=~/.cargo/bin:$PATH
             export RUST_BACKTRACE=1
             cd ustd && cargo test && cargo test --no-default-features && cd ..
             cd base58 && cargo test &&  cargo test --no-default-features && cd ..
