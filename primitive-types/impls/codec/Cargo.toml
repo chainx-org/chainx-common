@@ -9,7 +9,7 @@ edition = "2018"
 
 [dependencies]
 ustd = { path = "../../../ustd", default-features = false }
-parity-codec = { version = "3.5.1", default-features = false }
+parity-codec = { version = "3.5", default-features = false }
 
 [features]
 default = ["std"]

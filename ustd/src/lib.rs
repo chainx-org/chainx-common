@@ -20,7 +20,6 @@
 // end::description[]
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![cfg_attr(not(feature = "std"), feature(core_intrinsics))]
 #![cfg_attr(not(feature = "std"), feature(alloc_prelude))]
 
 use cfg_if::cfg_if;
@@ -47,7 +46,6 @@ cfg_if! {
         pub use core::f64;
         pub use core::fmt as core_fmt;
         pub use core::hash;
-        pub use core::intrinsics;
         pub use core::i8;
         pub use core::i16;
         pub use core::i32;
