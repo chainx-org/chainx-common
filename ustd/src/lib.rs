@@ -20,7 +20,7 @@
 // end::description[]
 
 #![cfg_attr(not(feature = "std"), no_std)]
-//#![cfg_attr(not(feature = "std"), feature(alloc_prelude))]
+#![cfg_attr(not(feature = "std"), feature(alloc_prelude))]
 
 use cfg_if::cfg_if;
 
@@ -31,14 +31,7 @@ cfg_if! {
         pub use alloc::boxed;
         pub use alloc::collections;
         pub use alloc::fmt as alloc_fmt;
-//        pub use alloc::prelude::v1 as alloc_prelude;
-        pub mod alloc_prelude {
-            pub use alloc::borrow::ToOwned;
-            pub use alloc::boxed::Box;
-            pub use alloc::string::String;
-            pub use alloc::string::ToString;
-            pub use alloc::vec::Vec;
-        }
+        pub use alloc::prelude::v1 as alloc_prelude;
         pub use alloc::rc;
         pub use alloc::string;
         pub use alloc::vec;
