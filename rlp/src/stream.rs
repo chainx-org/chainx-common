@@ -6,11 +6,11 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use ustd::{borrow::Borrow, prelude::*};
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
+use core::borrow::Borrow;
 
-use byteorder::{BigEndian, ByteOrder};
-
-use super::traits::Encodable;
+use crate::traits::Encodable;
 
 #[derive(Debug, Copy, Clone)]
 struct ListInfo {
@@ -42,7 +42,6 @@ impl Default for RlpStream {
     }
 }
 
-#[allow(clippy::len_without_is_empty)]
 impl RlpStream {
     /// Initializes instance of empty `Stream`.
     pub fn new() -> Self {
@@ -253,6 +252,10 @@ impl RlpStream {
         self.estimate_size(0)
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     /// Clear the output stream so far.
     ///
     /// ```rust
@@ -307,7 +310,7 @@ impl RlpStream {
         if self.is_finished() {
             self.buffer
         } else {
-            panic!("Stream is not finished")
+            panic!()
         }
     }
 
@@ -331,7 +334,6 @@ impl RlpStream {
                 }
             }
         };
-
         if should_finish {
             let x = self.unfinished_lists.pop().unwrap();
             let len = self.buffer.len() - x.position;
@@ -345,7 +347,7 @@ impl RlpStream {
         BasicEncoder::new(self)
     }
 
-    /// Finalize current ubnbound list. Panics if no unbounded list has been opened.
+    /// Finalize current unbounded list. Panics if no unbounded list has been opened.
     pub fn complete_unbounded_list(&mut self) {
         let list = self.unfinished_lists.pop().expect("No open list.");
         if list.max.is_some() {
@@ -354,6 +356,7 @@ impl RlpStream {
         let len = self.buffer.len() - list.position;
         self.encoder().insert_list_payload(len, list.position);
         self.note_appended(1);
+        self.finished_list = true;
     }
 }
 
@@ -372,8 +375,7 @@ impl<'a> BasicEncoder<'a> {
         let size = size as u32;
         let leading_empty_bytes = size.leading_zeros() as usize / 8;
         let size_bytes = 4 - leading_empty_bytes as u8;
-        let mut buffer = [0u8; 4];
-        BigEndian::write_u32(&mut buffer, size);
+        let buffer: [u8; 4] = size.to_be_bytes();
         assert!(position <= self.buffer.len());
 
         self.buffer

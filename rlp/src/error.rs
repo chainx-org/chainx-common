@@ -6,8 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use ustd::fmt;
-
+use core::fmt;
 #[cfg(feature = "std")]
 use std::error::Error as StdError;
 
