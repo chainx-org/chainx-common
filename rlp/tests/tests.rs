@@ -6,11 +6,27 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use ustd::{cmp, fmt, prelude::*};
+use core::{cmp, fmt};
 
-use rustc_hex::FromHex;
-
+use hex_literal::hex;
 use rlp::{Decodable, DecoderError, Encodable, Rlp, RlpStream};
+
+#[test]
+fn test_rlp_display() {
+    let data = hex!("f84d0589010efbef67941f79b2a056e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421a0c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470");
+    let rlp = Rlp::new(&data);
+    assert_eq!(format!("{}", rlp), "[\"0x05\", \"0x010efbef67941f79b2\", \"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\", \"0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470\"]");
+}
+
+#[test]
+fn length_overflow() {
+    let bs = [
+        0xbf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xe5,
+    ];
+    let rlp = Rlp::new(&bs);
+    let res: Result<u8, DecoderError> = rlp.as_val();
+    assert_eq!(Err(DecoderError::RlpInvalidLength), res);
+}
 
 #[test]
 fn rlp_at() {
@@ -119,7 +135,7 @@ fn encode_u16() {
 fn encode_u32() {
     let tests = vec![
         ETestPair(0u32, vec![0x80u8]),
-        ETestPair(0x10000, vec![0x83, 0x01, 0x00, 0x00]),
+        ETestPair(0x0001_0000, vec![0x83, 0x01, 0x00, 0x00]),
         ETestPair(0x00ff_ffff, vec![0x83, 0xff, 0xff, 0xff]),
     ];
     run_encode_tests(tests);
@@ -255,7 +271,7 @@ fn decode_untrusted_u16() {
 #[test]
 fn decode_untrusted_u32() {
     let tests = vec![
-        DTestPair(0x10000u32, vec![0x83, 0x01, 0x00, 0x00]),
+        DTestPair(0x0001_0000u32, vec![0x83, 0x01, 0x00, 0x00]),
         DTestPair(0x00ff_ffffu32, vec![0x83, 0xff, 0xff, 0xff]),
     ];
     run_decode_tests(tests);
@@ -471,10 +487,67 @@ fn test_inner_length_capping_for_short_lists() {
 
 // test described in
 //
+// https://github.com/paritytech/parity-common/issues/105
+#[test]
+fn test_nested_list_roundtrip() {
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct Inner(u64, u64);
+
+    impl Encodable for Inner {
+        fn rlp_append(&self, s: &mut RlpStream) {
+            s.begin_unbounded_list()
+                .append(&self.0)
+                .append(&self.1)
+                .complete_unbounded_list();
+        }
+    }
+
+    impl Decodable for Inner {
+        fn decode(rlp: &Rlp) -> Result<Self, DecoderError> {
+            Ok(Inner(rlp.val_at(0)?, rlp.val_at(1)?))
+        }
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    struct Nest<T>(Vec<T>);
+
+    impl<T: Encodable> Encodable for Nest<T> {
+        fn rlp_append(&self, s: &mut RlpStream) {
+            s.begin_unbounded_list()
+                .append_list(&self.0)
+                .complete_unbounded_list();
+        }
+    }
+
+    impl<T: Decodable> Decodable for Nest<T> {
+        fn decode(rlp: &Rlp) -> Result<Self, DecoderError> {
+            Ok(Nest(rlp.list_at(0)?))
+        }
+    }
+
+    let items = (0..4).map(|i| Inner(i, i + 1)).collect();
+    let nest = Nest(items);
+
+    let encoded = rlp::encode(&nest);
+    let decoded = rlp::decode(&encoded).unwrap();
+
+    assert_eq!(nest, decoded);
+
+    let nest2 = Nest(vec![nest.clone(), nest]);
+
+    let encoded = rlp::encode(&nest2);
+    let decoded = rlp::decode(&encoded).unwrap();
+
+    assert_eq!(nest2, decoded);
+}
+
+// test described in
+//
 // https://github.com/paritytech/parity-ethereum/pull/9663
 #[test]
 fn test_list_at() {
-    let raw = FromHex::from_hex::<Vec<u8>>("f83e82022bd79020010db83c4d001500000000abcdef12820cfa8215a8d79020010db885a308d313198a2e037073488208ae82823a8443b9a355c5010203040531b9019afde696e582a78fa8d95ea13ce3297d4afb8ba6433e4154caa5ac6431af1b80ba76023fa4090c408f6b4bc3701562c031041d4702971d102c9ab7fa5eed4cd6bab8f7af956f7d565ee1917084a95398b6a21eac920fe3dd1345ec0a7ef39367ee69ddf092cbfe5b93e5e568ebc491983c09c76d922dc3").unwrap();
+    let raw = hex!("f83e82022bd79020010db83c4d001500000000abcdef12820cfa8215a8d79020010db885a308d313198a2e037073488208ae82823a8443b9a355c5010203040531b9019afde696e582a78fa8d95ea13ce3297d4afb8ba6433e4154caa5ac6431af1b80ba76023fa4090c408f6b4bc3701562c031041d4702971d102c9ab7fa5eed4cd6bab8f7af956f7d565ee1917084a95398b6a21eac920fe3dd1345ec0a7ef39367ee69ddf092cbfe5b93e5e568ebc491983c09c76d922dc3");
+
     let rlp = Rlp::new(&raw);
     let _rlp1 = rlp.at(1).unwrap();
     let rlp2 = rlp.at(2).unwrap();

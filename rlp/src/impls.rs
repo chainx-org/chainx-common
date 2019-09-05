@@ -6,19 +6,15 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use ustd::{
-    iter::{empty, once},
-    mem,
-    prelude::*,
-    str,
-};
+#[cfg(not(feature = "std"))]
+use alloc::{borrow::ToOwned, string::String, vec::Vec};
+use core::iter::{empty, once};
+use core::{mem, str};
 
-use byteorder::{BigEndian, ByteOrder};
-
-use super::error::DecoderError;
-use super::rlpin::Rlp;
-use super::stream::RlpStream;
-use super::traits::{Decodable, Encodable};
+use crate::error::DecoderError;
+use crate::rlpin::Rlp;
+use crate::stream::RlpStream;
+use crate::traits::{Decodable, Encodable};
 
 pub fn decode_usize(bytes: &[u8]) -> Result<usize, DecoderError> {
     match bytes.len() {
@@ -124,12 +120,11 @@ impl Decodable for u8 {
 }
 
 macro_rules! impl_encodable_for_u {
-    ($name: ident, $func: ident, $size: expr) => {
+    ($name: ident) => {
         impl Encodable for $name {
             fn rlp_append(&self, s: &mut RlpStream) {
                 let leading_empty_bytes = self.leading_zeros() as usize / 8;
-                let mut buffer = [0u8; $size];
-                BigEndian::$func(&mut buffer, *self);
+                let buffer = self.to_be_bytes();
                 s.encoder().encode_value(&buffer[leading_empty_bytes..]);
             }
         }
@@ -141,7 +136,7 @@ macro_rules! impl_decodable_for_u {
         impl Decodable for $name {
             fn decode(rlp: &Rlp) -> Result<Self, DecoderError> {
                 rlp.decoder().decode_value(|bytes| match bytes.len() {
-                    0 | 1 => u8::decode(rlp).map($name::from),
+                    0 | 1 => u8::decode(rlp).map(|v| v as $name),
                     l if l <= mem::size_of::<$name>() => {
                         if bytes[0] == 0 {
                             return Err(DecoderError::RlpInvalidIndirection);
@@ -149,7 +144,7 @@ macro_rules! impl_decodable_for_u {
                         let mut res = 0 as $name;
                         for (i, byte) in bytes.iter().enumerate().take(l) {
                             let shift = (l - 1 - i) * 8;
-                            res += $name::from(*byte) << shift;
+                            res += (*byte as $name) << shift;
                         }
                         Ok(res)
                     }
@@ -160,9 +155,9 @@ macro_rules! impl_decodable_for_u {
     };
 }
 
-impl_encodable_for_u!(u16, write_u16, 2);
-impl_encodable_for_u!(u32, write_u32, 4);
-impl_encodable_for_u!(u64, write_u64, 8);
+impl_encodable_for_u!(u16);
+impl_encodable_for_u!(u32);
+impl_encodable_for_u!(u64);
 
 impl_decodable_for_u!(u16);
 impl_decodable_for_u!(u32);

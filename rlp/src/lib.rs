@@ -34,13 +34,18 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(not(feature = "std"))]
+extern crate alloc;
+
 mod error;
 mod impls;
 mod rlpin;
 mod stream;
 mod traits;
 
-use ustd::{borrow::Borrow, prelude::*};
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
+use core::borrow::Borrow;
 
 pub use self::error::DecoderError;
 pub use self::rlpin::{PayloadInfo, Prototype, Rlp, RlpIterator};
