@@ -18,6 +18,15 @@ fn bench_encode(c: &mut Criterion) {
             let _ = stream.out();
         })
     });
+    c.bench_function("encode_1000_u64", |b| {
+        b.iter(|| {
+            let mut stream = rlp::RlpStream::new_list(1000);
+            for i in 0..1000u64 {
+                stream.append(&i);
+            }
+            let _ = stream.out();
+        })
+    });
     c.bench_function("encode_nested_empty_lists", |b| {
         b.iter(|| {
             // [ [], [[]], [ [], [[]] ] ]
@@ -51,6 +60,19 @@ fn bench_decode(c: &mut Criterion) {
             let _: u64 = rlp.as_val().unwrap();
         })
     });
+    c.bench_function("decode_1000_u64", |b| {
+        let mut stream = rlp::RlpStream::new_list(1000);
+        for i in 0..1000u64 {
+            stream.append(&i);
+        }
+        let data = stream.out();
+        b.iter(|| {
+            let rlp = rlp::Rlp::new(&data);
+            for i in 0..1000 {
+                let _: u64 = rlp.val_at(i).unwrap();
+            }
+        });
+    });
     c.bench_function("decode_nested_empty_lists", |b| {
         b.iter(|| {
             // [ [], [[]], [ [], [[]] ] ]
@@ -72,7 +94,7 @@ fn bench_decode(c: &mut Criterion) {
         b.iter(|| {
             let rlp = rlp::Rlp::new(&data);
             for i in 0..1000 {
-                let _: Vec<u16> = rlp.at(0).unwrap().as_list().unwrap();
+                let _: Vec<u8> = rlp.at(i).unwrap().as_list().unwrap();
             }
         });
     });
