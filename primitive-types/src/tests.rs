@@ -6,8 +6,8 @@ macro_rules! from_low_u64_be {
         use byteorder::ByteOrder;
         let mut buf = [0x0; 8];
         byteorder::BigEndian::write_u64(&mut buf, $val);
-        let capped = ustd::cmp::min($hash::len_bytes(), 8);
-        let mut bytes = [0x0; ustd::mem::size_of::<$hash>()];
+        let capped = core::cmp::min($hash::len_bytes(), 8);
+        let mut bytes = [0x0; core::mem::size_of::<$hash>()];
         bytes[($hash::len_bytes() - capped)..].copy_from_slice(&buf[..capped]);
         $hash::from_slice(&bytes)
     }};
@@ -15,13 +15,13 @@ macro_rules! from_low_u64_be {
 
 #[cfg(feature = "serde")]
 mod serde_tests {
-    use ustd::fmt;
+    use core::fmt::Debug;
 
-    use impl_serde::serde;
+    use impl_serde::serde::de::DeserializeOwned;
 
-    use crate::*;
+    use crate::{H160, H256, H512, U128, U256, U512};
 
-    fn ser_from_str_err_is_data<T: serde::de::DeserializeOwned + fmt::Debug>(s: &str) -> bool {
+    fn ser_from_str_err_is_data<T: DeserializeOwned + Debug>(s: &str) -> bool {
         serde_json::from_str::<T>(s).unwrap_err().is_data()
     }
 
@@ -63,7 +63,6 @@ mod serde_tests {
         };
     }
 
-    test_serde_uint!(U64, test_serde_u64);
     test_serde_uint!(U128, test_serde_u128);
     test_serde_uint!(U256, test_serde_u256);
     test_serde_uint!(U512, test_serde_u512);
@@ -121,38 +120,20 @@ mod serde_tests {
         };
     }
 
-    test_serde_hash!(H64, test_serde_h64);
-    test_serde_hash!(H128, test_serde_h128);
     test_serde_hash!(H160, test_serde_h160);
     test_serde_hash!(H256, test_serde_h256);
-    test_serde_hash!(H264, test_serde_h264);
     test_serde_hash!(H512, test_serde_h512);
-    test_serde_hash!(H520, test_serde_h520);
-    test_serde_hash!(H1024, test_serde_h1024);
-    test_serde_hash!(H2048, test_serde_h2048);
 
     #[test]
     fn test_serde_hash_large_values() {
         assert_eq!(
-            serde_json::to_string_pretty(&H2048::from([255u8; 256])).unwrap(),
+            serde_json::to_string_pretty(&H512::from([255u8; 64])).unwrap(),
             "\"0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
-             ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
-             ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
-             ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
-             ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
-             ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
-             ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
              ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\"",
         );
-        let ser_from_str = |s: &str| serde_json::from_str::<H2048>(s).unwrap_err().is_data();
+        let ser_from_str = |s: &str| serde_json::from_str::<H512>(s).unwrap_err().is_data();
         assert!(ser_from_str(
             "\"0x1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
-             ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
-             ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
-             ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
-             ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
-             ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
-             ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\
              ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\"",
         ));
     }
@@ -160,13 +141,13 @@ mod serde_tests {
 
 #[cfg(feature = "codec")]
 mod codec_tests {
-    use ustd::prelude::*;
+    #[cfg(not(feature = "std"))]
+    use alloc::{format, vec, vec::Vec};
 
     use impl_codec::codec::{Decode, Encode};
 
     use super::helper;
-    use crate::*;
-
+    use crate::{H160, H256, H512, U128, U256, U512};
     fn convert_hex_str_endian(value: &str) -> Vec<u8> {
         helper::from_hex_str(value).into_iter().rev().collect()
     }
@@ -198,7 +179,6 @@ mod codec_tests {
         };
     }
 
-    test_codec_uint!(U64, 1, test_codec_u64);
     test_codec_uint!(U128, 2, test_codec_u128);
     test_codec_uint!(U256, 4, test_codec_u256);
     test_codec_uint!(U512, 8, test_codec_u512);
@@ -233,20 +213,14 @@ mod codec_tests {
         };
     }
 
-    test_codec_hash!(H64, test_codec_h64);
-    test_codec_hash!(H128, test_codec_h128);
     test_codec_hash!(H160, test_codec_h160);
     test_codec_hash!(H256, test_codec_h256);
-    test_codec_hash!(H264, test_codec_h264);
     test_codec_hash!(H512, test_codec_h512);
-    test_codec_hash!(H520, test_codec_h520);
-    test_codec_hash!(H1024, test_codec_h1024);
-    test_codec_hash!(H2048, test_codec_h2048);
 }
 
 #[cfg(feature = "rlp")]
 mod rlp_tests {
-    use ustd::{cmp, fmt, prelude::*};
+    use core::{cmp, fmt};
 
     use impl_rlp::rlp;
 
@@ -331,8 +305,9 @@ fn test_fixed_arrays_roundtrip() {
 }
 
 #[test]
+#[allow(clippy::cognitive_complexity)]
 fn test_u256_multi_full_mul() {
-    use ustd::u64::MAX;
+    use core::u64::MAX;
 
     use crate::{U256, U512};
 
@@ -475,7 +450,8 @@ fn test_u256_multi_full_mul() {
 }
 
 mod helper {
-    use ustd::prelude::*;
+    #[cfg(not(features = "std"))]
+    use alloc::{format, vec::Vec};
 
     use rustc_hex::FromHex;
 

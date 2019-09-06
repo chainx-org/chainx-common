@@ -2,7 +2,6 @@
 members = [
     "ustd",
     "base58",
-    "rlp",
     "primitive-types",
     "primitive-types/impls/serde",
     "primitive-types/impls/codec",
