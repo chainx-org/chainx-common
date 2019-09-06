@@ -9,7 +9,7 @@ edition = "2018"
 
 [dependencies]
 fixed-hash = { version = "0.4", default-features = false }
-uint = { version = "0.8",default-features = false }
+uint = { version = "0.8", default-features = false }
 impl-serde = { path = "impls/serde", default-features = false, optional = true }
 impl-codec = { path = "impls/codec", default-features = false, optional = true }
 impl-rlp = { path = "impls/rlp", default-features = false, optional = true }
