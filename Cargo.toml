@@ -1,6 +1,5 @@
 [workspace]
 members = [
-    "ustd",
     "base58",
     "primitive-types",
     "primitive-types/impls/serde",
