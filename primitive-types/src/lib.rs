@@ -20,7 +20,7 @@
     clippy::transmute_ptr_to_ptr
 )]
 
-#[cfg(not(features = "std"))]
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
 #[macro_use]

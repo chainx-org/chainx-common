@@ -450,7 +450,7 @@ fn test_u256_multi_full_mul() {
 }
 
 mod helper {
-    #[cfg(not(features = "std"))]
+    #[cfg(not(feature = "std"))]
     use alloc::{format, vec::Vec};
 
     use rustc_hex::FromHex;
