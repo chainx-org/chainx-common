@@ -33,7 +33,6 @@ jobs:
             export RUST_BACKTRACE=1
             cd base58 && cargo test && cd ..
             cd primitive-types && cargo test --all-features && cargo test --no-default-features --features 'codec' && cargo check --benches && cd ..
-
       - run:
           name: Coverage
           command: |
