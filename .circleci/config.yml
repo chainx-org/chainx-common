@@ -31,9 +31,7 @@ jobs:
           command: |
             export PATH=~/.cargo/bin:$PATH
             export RUST_BACKTRACE=1
-            cd base58 && cargo test && cd ..
             cd primitive-types && cargo test --all-features && cargo test --no-default-features --features 'codec' && cargo check --benches && cd ..
-
       - run:
           name: Coverage
           command: |
@@ -43,7 +41,7 @@ jobs:
             cargo kcov --print-install-kcov-sh | sh
             echo "Install kcov successfully"
             # coverage
-            cargo kcov --all
+            cargo kcov --all -v
             bash <(curl -s https://codecov.io/bash)
             echo "Upload code coverage successfully"
 
