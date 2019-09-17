@@ -1,6 +1,6 @@
 [package]
 name = "impl-serde"
-version = "0.1.1"
+version = "0.2.1"
 authors = ["Parity Technologies <admin@parity.io> and koushiro <koushiro.cqx@gmail.com>"]
 license = "Apache-2.0/MIT"
 homepage = "https://github.com/paritytech/parity-common"
@@ -9,4 +9,12 @@ edition = "2018"
 
 [dependencies]
 serde = "1.0"
-rustc-hex = "2.0"
+
+[dev-dependencies]
+criterion = "0.3"
+uint = "0.8"
+serde_json = "1.0"
+
+[[bench]]
+name = "impl_serde"
+harness = false

@@ -1,4 +1,4 @@
-// Copyright 2015-2018 Parity Technologies
+// Copyright 2015-2019 Parity Technologies
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -12,9 +12,6 @@
 pub use serde;
 
 #[doc(hidden)]
-pub use rustc_hex;
-
-#[doc(hidden)]
 pub mod serialize;
 
 /// Add Serde serialization support to an integer created by `construct_uint!`.
@@ -26,9 +23,10 @@ macro_rules! impl_uint_serde {
             where
                 S: $crate::serde::Serializer,
             {
+                let mut slice = [0u8; 2 + 2 * $len * 8];
                 let mut bytes = [0u8; $len * 8];
                 self.to_big_endian(&mut bytes);
-                $crate::serialize::serialize_uint(&bytes, serializer)
+                $crate::serialize::serialize_uint(&mut slice, &bytes, serializer)
             }
         }
 
@@ -37,11 +35,12 @@ macro_rules! impl_uint_serde {
             where
                 D: $crate::serde::Deserializer<'de>,
             {
-                $crate::serialize::deserialize_check_len(
+                let mut bytes = [0u8; $len * 8];
+                let wrote = $crate::serialize::deserialize_check_len(
                     deserializer,
-                    $crate::serialize::ExpectedLen::Between(0, $len * 8),
-                )
-                .map(|x| (&*x).into())
+                    $crate::serialize::ExpectedLen::Between(0, &mut bytes),
+                )?;
+                Ok(bytes[0..wrote].into())
             }
         }
     };
@@ -56,7 +55,8 @@ macro_rules! impl_fixed_hash_serde {
             where
                 S: $crate::serde::Serializer,
             {
-                $crate::serialize::serialize(&self.0, serializer)
+                let mut slice = [0u8; 2 + 2 * $len];
+                $crate::serialize::serialize_raw(&mut slice, &self.0, serializer)
             }
         }
 
@@ -65,11 +65,12 @@ macro_rules! impl_fixed_hash_serde {
             where
                 D: $crate::serde::Deserializer<'de>,
             {
+                let mut bytes = [0u8; $len];
                 $crate::serialize::deserialize_check_len(
                     deserializer,
-                    $crate::serialize::ExpectedLen::Exact($len),
-                )
-                .map(|x| $name::from_slice(&x))
+                    $crate::serialize::ExpectedLen::Exact(&mut bytes),
+                )?;
+                Ok($name(bytes))
             }
         }
     };

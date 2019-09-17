@@ -10,8 +10,6 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use ustd::{mem, prelude::*, slice};
-
 #[doc(hidden)]
 pub use parity_codec as codec;
 
@@ -59,11 +57,11 @@ macro_rules! impl_fixed_hash_codec_ext {
     ( $( $t:ty ),* ) => { $(
         impl $crate::codec::Encode for $t {
             fn using_encoded<R, F: FnOnce(&[u8]) -> R>(&self, f: F) -> R {
-                let size = $crate::mem::size_of::<$t>();
+                let size = core::mem::size_of::<$t>();
                 let value_slice = unsafe {
                     let ptr = self as *const _ as *const u8;
                     if size != 0 {
-                        $crate::slice::from_raw_parts(ptr, size)
+                        core::slice::from_raw_parts(ptr, size)
                     } else {
                         &[]
                     }
@@ -74,12 +72,12 @@ macro_rules! impl_fixed_hash_codec_ext {
 
         impl $crate::codec::Decode for $t {
             fn decode<I: $crate::codec::Input>(input: &mut I) -> Option<Self> {
-                let size = $crate::mem::size_of::<$t>();
+                let size = core::mem::size_of::<$t>();
                 assert!(size > 0, "EndianSensitive can never be implemented for a zero-sized type.");
-                let mut val: $t = unsafe { $crate::mem::zeroed() };
+                let mut val: $t = unsafe { core::mem::zeroed() };
 
                 unsafe {
-                    let raw: &mut [u8] = $crate::slice::from_raw_parts_mut(
+                    let raw: &mut [u8] = core::slice::from_raw_parts_mut(
                         &mut val as *mut $t as *mut u8,
                         size
                     );
