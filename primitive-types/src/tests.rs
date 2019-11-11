@@ -220,6 +220,8 @@ mod codec_tests {
 
 #[cfg(feature = "rlp")]
 mod rlp_tests {
+    #[cfg(not(feature = "std"))]
+    use alloc::{vec, vec::Vec};
     use core::{cmp, fmt};
 
     use impl_rlp::rlp;

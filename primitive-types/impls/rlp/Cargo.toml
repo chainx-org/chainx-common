@@ -10,6 +10,6 @@ edition = "2018"
 [dependencies]
 rlp = { version = "0.4", default-features = false }
 
-#[features]
-#default = ["std"]
-#std = ["rlp/std"]
+[features]
+default = ["std"]
+std = ["rlp/std"]
