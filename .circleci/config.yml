@@ -31,11 +31,12 @@ jobs:
           command: |
             export PATH=~/.cargo/bin:$PATH
             export RUST_BACKTRACE=1
-            cd primitive-types && cargo test --all-features && cargo test --no-default-features --features 'codec' && cargo check --benches && cd ..
+            cd primitive-types && cargo test --all-features && cargo test --no-default-features --features 'codec,rlp' && cargo check --benches && cd ..
       - run:
           name: Coverage
           command: |
             export PATH=~/.cargo/bin:$PATH
+            pyenv global 3.5.2
             # install kcov
             cargo install cargo-kcov
             cargo kcov --print-install-kcov-sh | sh

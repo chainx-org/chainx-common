@@ -1,7 +1,5 @@
 [workspace]
 members = [
     "primitive-types",
-    "primitive-types/impls/serde",
     "primitive-types/impls/codec",
-    "primitive-types/impls/rlp",
 ]
